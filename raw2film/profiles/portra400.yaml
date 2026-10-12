@@ -1,0 +1,21 @@
+name: Kodak Portra 400
+note: Subjective film-inspired prototype; not calibrated against Kodak measurements
+# Input and output points in display-referred sRGB luma (gamma encoded).
+tone_points:
+  - [0.0, 0.012]
+  - [0.08, 0.095]
+  - [0.18, 0.205]
+  - [0.50, 0.525]
+  - [0.80, 0.795]
+  - [1.0, 0.98]
+saturation: 0.92
+color_matrix:
+  - [1.018, -0.009, -0.009]
+  - [0.005, 0.99, 0.005]
+  - [-0.009, 0.005, 1.004]
+shadow_tint: [0.004, 0.002, 0.005]
+highlight_tint: [0.013, 0.005, -0.008]
+hue_bands:
+  - {center: 112, width: 32, saturation: 0.82, hue_shift: 5}
+  - {center: 35, width: 26, saturation: 0.98, hue_shift: -2}
+grain: 0.008

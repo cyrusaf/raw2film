@@ -1,0 +1,21 @@
+name: Fujifilm Classic Chrome
+note: Inspired by Fujifilm camera JPEG simulation; not an official or matched emulation
+tone_points:
+  - [0.0, 0.005]
+  - [0.08, 0.052]
+  - [0.18, 0.16]
+  - [0.50, 0.51]
+  - [0.80, 0.82]
+  - [1.0, 0.982]
+saturation: 0.75
+color_matrix:
+  - [0.997, -0.001, 0.004]
+  - [0.002, 0.990, 0.008]
+  - [-0.008, 0.013, 0.995]
+shadow_tint: [-0.010, 0.002, 0.011]
+highlight_tint: [0.007, 0.005, -0.006]
+hue_bands:
+  - {center: 117, width: 42, saturation: 0.78, hue_shift: -8}
+  - {center: 218, width: 45, saturation: 0.97, hue_shift: -11}
+  - {center: 0, width: 32, saturation: 0.86, hue_shift: 2}
+grain: 0.0

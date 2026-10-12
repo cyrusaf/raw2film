@@ -1,0 +1,21 @@
+# REFERENCE SHORTLIST, NOT A DOWNLOADED DATASET.
+# Twelve scene-specific candidate slots, each with a source page. Individual
+# photos have NOT yet been selected or licensed. Do not treat these pages as
+# pixel-matched, authenticated or redistributable calibration data.
+# For each slot, choose a specific image, record its direct URL, photographer,
+# camera/scan settings if known, rights, and a note on processing.
+version: 1
+status: candidate_slots_unreviewed
+references:
+  - {id: p400-portrait, film: portra400, subject: portrait, source_page: 'https://analogicafotografia.com/en/blogs/analog-film-photography-blog/kodak-portra-400-film-sample-photos', photo_url: null, rights: unknown}
+  - {id: p400-greenery, film: portra400, subject: greenery, source_page: 'https://www.lomography.com/films/871910984-kodak-portra-400/photos', photo_url: null, rights: unknown}
+  - {id: p400-architecture, film: portra400, subject: architecture, source_page: 'https://analogicafotografia.com/en/blogs/analog-film-photography-blog/kodak-portra-400-film-sample-photos', photo_url: null, rights: unknown}
+  - {id: gold-daylight, film: gold200, subject: sunny-outdoors, source_page: 'https://photofolly.com/analog/examples/Kodak_Gold_200/Kodak_Gold_200.html', photo_url: null, rights: unknown}
+  - {id: gold-portrait, film: gold200, subject: portrait, source_page: 'https://www.myleskatherine.com/blog/2023/10/10/kodak-gold-200-35mm-sample-photos-one-of-my-top-5-favorite-films', photo_url: null, rights: unknown}
+  - {id: gold-architecture, film: gold200, subject: architecture, source_page: 'https://brooklynfilmcamera.com/blogs/guides/kodak-gold-review', photo_url: null, rights: unknown}
+  - {id: chrome-architecture, film: classic_chrome, subject: architecture, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
+  - {id: chrome-landscape, film: classic_chrome, subject: landscape, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
+  - {id: chrome-portrait, film: classic_chrome, subject: portrait, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
+  - {id: negative-street, film: classic_negative, subject: street, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}
+  - {id: negative-greenery, film: classic_negative, subject: greenery, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}
+  - {id: negative-portrait, film: classic_negative, subject: portrait, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}

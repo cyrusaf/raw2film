@@ -1,0 +1,21 @@
+name: Fujifilm Classic Negative
+note: Inspired by Fujifilm camera JPEG simulation; not an official or matched emulation
+tone_points:
+  - [0.0, 0.004]
+  - [0.08, 0.045]
+  - [0.18, 0.14]
+  - [0.50, 0.51]
+  - [0.80, 0.85]
+  - [1.0, 0.99]
+saturation: 0.90
+color_matrix:
+  - [1.017, -0.010, -0.007]
+  - [-0.004, 1.017, -0.013]
+  - [-0.003, -0.003, 1.006]
+shadow_tint: [-0.025, 0.011, 0.012]
+highlight_tint: [0.025, -0.011, 0.020]
+hue_bands:
+  - {center: 120, width: 43, saturation: 0.86, hue_shift: -9}
+  - {center: 219, width: 42, saturation: 0.89, hue_shift: -9}
+  - {center: 5, width: 30, saturation: 1.10, hue_shift: 0}
+grain: 0.0
