@@ -1,11 +1,12 @@
 name: Kodak Gold 200
-note: Subjective film-inspired prototype; not calibrated against Kodak measurements
+note: "Qualitatively reviewed against credited manufacturer examples; not a matched or measured\
+  \ emulation"
 tone_points:
   - [0.0, 0.008]
   - [0.08, 0.07]
   - [0.18, 0.172]
-  - [0.50, 0.54]
-  - [0.80, 0.84]
+  - [0.5, 0.54]
+  - [0.8, 0.84]
   - [1.0, 0.985]
 saturation: 1.07
 color_matrix:
@@ -13,9 +14,12 @@ color_matrix:
   - [-0.004, 1.018, -0.014]
   - [-0.018, -0.006, 1.024]
 shadow_tint: [0.004, 0.001, -0.002]
-highlight_tint: [0.027, 0.012, -0.016]
+highlight_tint: [0.021, 0.01, -0.011]
 hue_bands:
   - {center: 55, width: 32, saturation: 1.14, hue_shift: -4}
   - {center: 115, width: 35, saturation: 0.94, hue_shift: -8}
   - {center: 225, width: 32, saturation: 1.04, hue_shift: -4}
 grain: 0.011
+gamut_compression: true
+neutral_endpoints: true
+revision: reference-review-2026-10-12

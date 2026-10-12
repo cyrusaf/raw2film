@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from raw2film.color import (srgb_decode, srgb_encode, highlight_compress,
                            rgb_to_hsv, hsv_to_rgb, load_profile, create_lut,
-                           apply_lut, film_transform, export_cube)
+                           apply_lut, film_transform, export_cube,
+                           compress_gamut, LUMA)
 
 
 def test_srgb_roundtrip():
@@ -60,3 +61,62 @@ def test_cube_red_axis_changes_fastest(tmp_path):
         [0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0],
         [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1],
     ], atol=1e-6)
+
+
+@pytest.mark.parametrize('knee', [0, 1, -0.1, 1.1, float('nan')])
+def test_gamut_compression_rejects_invalid_knee(knee):
+    with pytest.raises(ValueError, match='knee'):
+        compress_gamut(np.array([[.2, .5, .8]], np.float32), knee=knee)
+
+
+def test_gamut_compression_leaves_low_chroma_and_neutrals_unchanged():
+    rgb = np.array([[0, 0, 0], [.2, .3, .4], [.7, .6, .5], [1, 1, 1]], np.float32)
+    np.testing.assert_allclose(compress_gamut(rgb), rgb, atol=1e-7)
+
+
+def test_gamut_compression_preserves_in_range_luma_and_color_direction():
+    # Some channels lie outside the display gamut, but each pixel's luma is
+    # representable. Compression must move toward gray, not rotate its color.
+    rgb = np.array([[1.2, .35, .1], [-.1, .5, 1.1], [.95, .2, .9]], np.float32)
+    luma = rgb @ LUMA
+    result = compress_gamut(rgb)
+    np.testing.assert_allclose(result @ LUMA, luma, atol=1e-7)
+    before = rgb - luma[:, None]
+    after = result - luma[:, None]
+    np.testing.assert_allclose(np.cross(before, after), 0, atol=1e-7)
+    assert np.all(np.sum(before * after, axis=-1) > 0)
+    assert np.all(np.linalg.norm(after, axis=-1) < np.linalg.norm(before, axis=-1))
+    assert np.all((result > 0) & (result < 1))
+
+
+def test_gamut_compression_is_finite_and_bounded_for_out_of_gamut_values():
+    rgb = np.random.default_rng(32).uniform(-2, 3, (13, 17, 3)).astype(np.float32)
+    result = compress_gamut(rgb)
+    assert result.shape == rgb.shape
+    assert result.dtype == np.float32
+    assert np.all(np.isfinite(result))
+    assert np.all((result >= 0) & (result <= 1))
+
+
+@pytest.mark.parametrize('name', ['portra400', 'gold200', 'classic_chrome', 'classic_negative'])
+def test_profile_neutral_ramp_has_neutral_endpoints_and_no_highlight_plateau(name):
+    ramp = np.repeat(np.linspace(0, 1, 1001, dtype=np.float32)[:, None], 3, axis=1)
+    profile = load_profile(name)
+    result = film_transform(ramp, profile)
+    np.testing.assert_allclose(result[0], profile['tone_points'][0][1], atol=1e-7)
+    np.testing.assert_allclose(result[-1], profile['tone_points'][-1][1], atol=2e-7)
+    # A cast or a cap on one channel can make pale neutrals lose highlight
+    # detail even when the overall luminance still appears to increase.
+    assert np.all(np.diff(result, axis=0) > 0)
+    assert np.all(result < 1)
+
+
+def test_neutral_endpoints_preserves_tint_inside_the_tonal_range():
+    profile = {'name': 'Tint test', 'tone_points': [[0, 0], [.5, .5], [1, 1]],
+               'shadow_tint': [.01, 0, -.01], 'highlight_tint': [-.01, 0, .01],
+               'neutral_endpoints': True, 'gamut_compression': True}
+    rgb = np.repeat(np.array([0, .2, .5, .8, 1], np.float32)[:, None], 3, axis=1)
+    result = film_transform(rgb, profile)
+    np.testing.assert_allclose(result[[0, 2, 4]], rgb[[0, 2, 4]], atol=1e-7)
+    assert result[1, 0] > result[1, 1] > result[1, 2]
+    assert result[3, 0] < result[3, 1] < result[3, 2]

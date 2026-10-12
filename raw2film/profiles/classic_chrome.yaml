@@ -1,21 +1,26 @@
 name: Fujifilm Classic Chrome
-note: Inspired by Fujifilm camera JPEG simulation; not an official or matched emulation
+note: "Qualitatively reviewed against credited manufacturer examples; not a matched or measured\
+  \ emulation"
 tone_points:
-  - [0.0, 0.005]
-  - [0.08, 0.052]
-  - [0.18, 0.16]
-  - [0.50, 0.51]
-  - [0.80, 0.82]
-  - [1.0, 0.982]
-saturation: 0.75
+  - [0, 0.003]
+  - [0.08, 0.042]
+  - [0.18, 0.145]
+  - [0.5, 0.5]
+  - [0.8, 0.81]
+  - [1, 0.985]
+saturation: 0.8
 color_matrix:
   - [0.997, -0.001, 0.004]
-  - [0.002, 0.990, 0.008]
+  - [0.002, 0.99, 0.008]
   - [-0.008, 0.013, 0.995]
-shadow_tint: [-0.010, 0.002, 0.011]
-highlight_tint: [0.007, 0.005, -0.006]
+shadow_tint: [-0.006, 0.001, 0.008]
+highlight_tint: [0.004, 0.003, -0.003]
 hue_bands:
-  - {center: 117, width: 42, saturation: 0.78, hue_shift: -8}
-  - {center: 218, width: 45, saturation: 0.97, hue_shift: -11}
-  - {center: 0, width: 32, saturation: 0.86, hue_shift: 2}
+  - {center: 117, width: 42, saturation: 0.88, hue_shift: -4}
+  - {center: 218, width: 45, saturation: 0.94, hue_shift: -3}
+  - {center: 0, width: 32, saturation: 0.92, hue_shift: 1}
+  - {center: 305, width: 28, saturation: 0.78, hue_shift: 0}
 grain: 0.0
+gamut_compression: true
+neutral_endpoints: true
+revision: reference-review-2026-10-12

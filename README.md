@@ -9,7 +9,7 @@ A minimal, **working Python command-line RAW developer with configurable photogr
 
 Despite the project name, the engine is not restricted to film emulation: new looks can express any photographic color treatment. The CLI supports `--look` (with `--film` and `--stock` aliases).
 
-These are **early artistic approximations**, not officially licensed, measured, or scientifically calibrated recreations of the named stocks/simulations. Color results depend on the RAW developer, camera and lighting. This software is not affiliated with Kodak or Fujifilm.
+These are **film-inspired artistic approximations**, qualitatively reviewed against credited manufacturer examples. They are not officially licensed, measured, or scientifically calibrated recreations of the named stocks/simulations. Color results depend on the RAW developer, camera and lighting. This software is not affiliated with Kodak or Fujifilm.
 
 ## Quick start (macOS / Linux)
 
@@ -54,9 +54,10 @@ Choose a photo from the optional `--input-dir` folder, or load a RAW through the
 file picker/drop zone. Processing stays on your computer. The server binds only
 to loopback; it is a local desktop companion, not a public hosting service.
 
-- **Look strength, 0–300%:** 0% is neutral, 100% is the original profile, and
-  higher values amplify its tonal and color changes. Amplification stops at the
-  RGB gamut boundary per pixel instead of independently clipping each channel.
+- **Look strength, 0–300%:** 0% is neutral, 100% is the current profile, and
+  higher values amplify its tonal and color changes. Above 100%, a smooth
+  shoulder approaches the RGB gamut boundary while preserving the direction
+  of each pixel's color change.
   It exaggerates the artistic treatment; it does not improve film accuracy.
 - **Exposure, −3 to +3 EV:** affects both neutral and styled previews equally,
   so a brightness adjustment cannot masquerade as a stronger look.
@@ -67,6 +68,10 @@ to loopback; it is a local desktop companion, not a public hosting service.
 - **Export:** download a full-resolution sRGB JPEG with the current settings.
   Preview processing uses a 1400-pixel long edge for responsiveness. Grain is
   sized in output pixels, so its apparent size differs in a full-size export.
+
+Private RAW files and rendered derivatives belong outside version control. The
+repository ignores camera RAW formats, common photo-output formats and local
+working/output folders; do not force-add private images.
 
 The original files are never edited. Uploaded copies are temporary and removed
 when the server shuts down normally. Keep this terminal running while editing;
@@ -99,7 +104,7 @@ because it would otherwise produce the same output filename.
 2. **Linear exposure**: multiply pixels by `2 ** EV`; optionally auto-meter the scene.
 3. **Output shoulder**: a smooth highlight compression above a linear-light knee. This is a simple output transform, **not** full HDR reconstruction or actual chemical film response. Some highlight information may already be clipped by LibRaw.
 4. **Color encode**: convert linear sRGB to standard nonlinear sRGB transfer curve.
-5. **Film LUT**: apply a 33x33x33 3D LUT, generated from the YAML profile. The LUT contains a monotonic PCHIP luminance curve, chroma adjustment, 3x3 color matrix, selective hue/saturation operations, and luminance-weighted shadow/highlight tints.
+5. **Film LUT**: apply a 33x33x33 3D LUT, generated from the YAML profile. The LUT contains a monotonic PCHIP luminance curve, chroma adjustment, 3x3 color matrix, selective hue/saturation operations, and luminance-weighted shadow/highlight tints. The bundled profiles also fade tint at neutral endpoints and softly compress chroma near the output gamut boundary.
 6. **Finishing**: add subtle monochromatic, spatially correlated, luminance-dependent grain as configured. Fujifilm looks have grain disabled by default.
 7. **Export**: write JPEG with an embedded sRGB ICC profile, leaving the original untouched.
 
@@ -113,27 +118,32 @@ Look definitions live in [`raw2film/profiles/`](raw2film/profiles/) as YAML data
 - `saturation`: global color scaling in an RGB-luma/chroma approximation.
 - `color_matrix`: a 3x3 RGB color mixing matrix.
 - `hue_bands`: hue ranges with configurable hue shift and saturation changes. Hue angles are degrees; `width` defines a soft Gaussian range.
-- `shadow_tint`, `highlight_tint`: small RGB offsets, strongest toward dark/bright extremes.
+- `shadow_tint`, `highlight_tint`: small RGB offsets weighted toward shadows/highlights.
+- `neutral_endpoints`: fade those tints near black and white; enabled in bundled profiles.
+- `gamut_compression`: softly compress chroma near the sRGB boundary; enabled in bundled profiles.
 - `grain`: default effective standard deviation of grain, roughly in normalized display values.
 
 Change a YAML file, rerun `raw2film compare`, and review the entire gallery. The CLI process reloads profile files when invoked again. Profiles are intentionally basic and manually tuned; no training pipeline yet.
 
-## Reference-photo shortlist
+## Reference review
 
-[`references/manifest.yaml`](references/manifest.yaml) provides **12 research slots** (3 subjects per look) with source-page URLs. **No copyrighted image bytes are bundled.** The slots are **not finalized image selections**: `photo_url: null` and `rights: unknown` are deliberate. Before using any individual reference for training or distribution, document the actual photo, photographer, scanning or camera processing details, and permissions.
+[`references/manifest.yaml`](references/manifest.yaml) records inspected Kodak and
+Fujifilm examples with publisher links and photographer credits.
+[`references/REVIEW.md`](references/REVIEW.md) explains the resulting profile
+changes and remaining limits. No copyrighted references, private RAW files or
+private rendered derivatives are bundled in the repository.
 
-- Portra 400: portraits, foliage, architecture.
-- Gold 200: sun, portraits, architecture.
-- Classic Chrome: buildings, landscape, portraits.
-- Classic Negative: street, foliage, portraits.
-
-Film scans include scanner and lab choices, so an appearance seen on a website is not solely the film stock. Fujifilm's camera film simulations are digital renderings, not necessarily physical film stocks. Without *matched* target/input photographs, the initial color profiles can only be visually approximated; references don't provide a defensible per-pixel error measure.
+This is a qualitative review across different photographs. Without matched input
+and target photographs, references cannot establish a per-pixel accuracy score.
+Film scans also reflect scanner, lab and editing choices. The numeric profile
+parameters remain subjective, and skin-tone and grain fidelity are unvalidated.
+Classic Negative's brightness-dependent, per-color contrast is not fully modeled.
 
 ## Limitations and next steps
 
-- The RAW path uses the documented [rawpy linear output API](https://github.com/letmaik/rawpy/blob/main/README.md). Real Sony ARW decoding was verified locally on macOS with Python 3.12 and rawpy 0.27.1: all five 2400-pixel comparison renders and a 6024 × 4024 Portra export completed with embedded sRGB ICC profiles. The source file's SHA-256 was unchanged. This validates one photograph, not every supported camera or lighting condition.
+- The RAW path uses the documented [rawpy linear output API](https://github.com/letmaik/rawpy/blob/main/README.md). Local acceptance testing exercises Sony ARW decoding, all looks, embedded sRGB ICC profiles and source preservation. This verifies rendering behavior, not accuracy for every camera or lighting condition.
 - 16-bit precision is preserved through RAW decode and float32 processing, but JPEG exports are 8-bit. Add 16-bit TIFF in a later release.
-- The LUT works on gamma-encoded sRGB and cannot capture scene-linear or spectral cross-channel effects, film development chemistry, halation, film-specific grain distributions, scanner nonuniformity or sophisticated gamut mapping.
+- The LUT works on gamma-encoded sRGB and cannot capture scene-linear or spectral cross-channel effects, film development chemistry, halation, film-specific grain distributions, scanner nonuniformity or a perceptually calibrated gamut transform.
 - `rawpy` converts/clips camera-native values to linear sRGB before film simulation. A future higher-quality pipeline could use camera DCP/ICC profiles and a wide-gamut floating-point intermediate such as linear Rec.2020 or ACEScg.
 - Pure-Python/scipy LUT processing prioritizes clarity over GPU speed; memory optimization and thumbnail caching are future work.
 - The `demo` command creates a **synthetic color-test chart**, not an actual photographic reference.
@@ -143,7 +153,7 @@ Film scans include scanner and lab choices, so an appearance seen on a website i
 ```text
 raw2film/       RAW/JPEG decoding, color math, film renderer, CLI, gallery, demo
 raw2film/profiles/ Four editable YAML look profiles
-references/    12-slot, provenance-aware reference candidate manifest
+references/    Reviewed source manifest, credits and qualitative findings
 tests/         Color and end-to-end CLI regression tests
 ```
 
@@ -164,12 +174,7 @@ ICC embedding and source preservation without committing a private photograph:
 RAW2FILM_TEST_RAW=/path/to/sony-photo.ARW pytest -q
 ```
 
-The first local acceptance image was a dark indoor scene. A manually chosen
-`--exposure +1.0` made a useful comparison while retaining the lighting; the CLI
-default remains 0 EV. Visual inspection included all looks and 1:1 crops of fur,
-deep shadows and smooth background in the full-resolution Portra export. Fewer
-than 0.015% of pixels in each comparison JPEG reached 255 in any channel; Gold's
-grain produced about 0.30% fully black pixels. These are exported-JPEG statistics,
-not measurements of sensor clipping or film accuracy. Skin and foliage fidelity
-still need separate scenes and matched references. Grain is currently sized in
-output pixels, so its apparent size varies with export resolution.
+Real-camera test inputs and rendered outputs remain local and untracked. Pixel
+clipping statistics describe exported RGB values, not sensor clipping or film
+accuracy. Grain is currently sized in output pixels, so its apparent size varies
+with export resolution.

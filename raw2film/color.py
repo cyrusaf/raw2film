@@ -102,6 +102,27 @@ def hsv_to_rgb(hsv: np.ndarray) -> np.ndarray:
     return out + (v-c)[..., None]
 
 
+def compress_gamut(rgb: np.ndarray, knee: float = 0.85) -> np.ndarray:
+    """Smoothly reduce chroma near RGB limits while preserving luma/direction.
+
+    This display-space safeguard is not a spectral film model. Unlike channel
+    clipping, it retains hue direction and avoids flat, tinted highlight caps.
+    """
+    if not 0 < knee < 1:
+        raise ValueError("knee must be in (0, 1)")
+    lum = np.clip(rgb @ LUMA, 0, 1)[..., None]
+    chroma = rgb - lum
+    room = np.where(chroma > 0, 1 - lum, lum)
+    ratio = np.zeros_like(chroma)
+    np.divide(np.abs(chroma), room, out=ratio, where=room > 1e-8)
+    ratio = np.where((room <= 1e-8) & (np.abs(chroma) > 1e-8), 1e8, ratio)
+    extent = np.max(ratio, axis=-1, keepdims=True)
+    shoulder = knee + (1-knee) * (-np.expm1(-np.maximum(extent-knee, 0)/(1-knee)))
+    scale = np.ones_like(extent)
+    np.divide(shoulder, extent, out=scale, where=extent > knee)
+    return np.clip(lum + chroma * scale, 0, 1).astype(np.float32)
+
+
 def film_transform(rgb: np.ndarray, profile: dict) -> np.ndarray:
     """Procedural film-inspired transform on gamma-encoded sRGB values [0, 1].
 
@@ -118,7 +139,8 @@ def film_transform(rgb: np.ndarray, profile: dict) -> np.ndarray:
     saturation = float(profile.get("saturation", 1.0))
     y = target[:, None] + saturation * (x - lum[:, None])
     y = y @ np.asarray(profile.get("color_matrix", np.eye(3)), dtype=np.float32).T
-    y = np.clip(y, 0, 1)
+    protect_gamut = bool(profile.get("gamut_compression", False))
+    y = compress_gamut(y) if protect_gamut else np.clip(y, 0, 1)
 
     if profile.get("hue_bands"):
         hsv = rgb_to_hsv(y)
@@ -134,9 +156,19 @@ def film_transform(rgb: np.ndarray, profile: dict) -> np.ndarray:
     tint_lo = np.asarray(profile.get("shadow_tint", [0, 0, 0]), dtype=np.float32)
     tint_hi = np.asarray(profile.get("highlight_tint", [0, 0, 0]), dtype=np.float32)
     # Weighted tints fade at middle-gray so colors stay more stable near midtones.
-    y += (np.maximum(0, 0.5-target) / 0.5)[:, None]**2 * tint_lo
-    y += (np.maximum(0, target-0.5) / 0.5)[:, None]**2 * tint_hi
-    return np.clip(y, 0, 1).reshape(shape).astype(np.float32)
+    lo_weight = (np.maximum(0, 0.5-target) / 0.5)**2
+    hi_weight = (np.maximum(0, target-0.5) / 0.5)**2
+    if profile.get("neutral_endpoints", False):
+        # Retain split-tone character in the image, fade it out at true black
+        # and near-white so the tint cannot paint a colored highlight plateau.
+        low_fade = np.clip(lum / .12, 0, 1)
+        high_fade = np.clip((1-lum) / .20, 0, 1)
+        lo_weight *= low_fade * low_fade * (3 - 2*low_fade)
+        hi_weight *= high_fade * high_fade * (3 - 2*high_fade)
+    y += lo_weight[:, None] * tint_lo
+    y += hi_weight[:, None] * tint_hi
+    y = compress_gamut(y) if protect_gamut else np.clip(y, 0, 1)
+    return y.reshape(shape).astype(np.float32)
 
 
 def create_lut(profile: dict, size: int = 33) -> np.ndarray:

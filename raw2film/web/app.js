@@ -43,7 +43,7 @@ function updateReadouts() {
     input.setAttribute("aria-valuetext", key === "exposure" ? `${value.toFixed(1)} EV` : `${value} percent`);
   }
   const amplified = Number($("strength").value) > 100;
-  $("strength-hint").textContent = amplified ? "Artistic amplification. High strengths can exaggerate color and highlights." : "100% is the original film recipe.";
+  $("strength-hint").textContent = amplified ? "Artistic amplification. High strengths can exaggerate color and highlights." : "100% is the base look.";
   $("strength-hint").classList.toggle("amplified", amplified);
 }
 function selectedName() { return state.looks.find((look) => look.id === state.look)?.name || "Film"; }

@@ -1,21 +1,50 @@
-# REFERENCE SHORTLIST, NOT A DOWNLOADED DATASET.
-# Twelve scene-specific candidate slots, each with a source page. Individual
-# photos have NOT yet been selected or licensed. Do not treat these pages as
-# pixel-matched, authenticated or redistributable calibration data.
-# For each slot, choose a specific image, record its direct URL, photographer,
-# camera/scan settings if known, rights, and a note on processing.
-version: 1
-status: candidate_slots_unreviewed
+# Source links and credits only. No reference or private photograph bytes are bundled.
+version: 2
+reviewed_on: '2026-10-12'
+status: qualitatively_reviewed_unmatched_references
+scope: Visual direction only; not a calibration dataset or a license to redistribute images.
+metadata_limits: Unless noted, camera, exposure, white balance, development, scanning, and postprocessing are unspecified.
+rights: Copyright remains with the credited photographers and publishers; redistribution permission has not been obtained.
+sources:
+  kodak_catalogue:
+    url: 'https://kodakprofessional.com/sites/default/files/files/resources/Kodak%20Catalogue%20-%20Final%20-%20High%20Res%20%28Print%29.pdf'
+    publisher: Kodak Professional
+  classic_chrome:
+    url: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/'
+    publisher: Fujifilm
+  classic_negative:
+    url: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/'
+    publisher: Fujifilm
 references:
-  - {id: p400-portrait, film: portra400, subject: portrait, source_page: 'https://analogicafotografia.com/en/blogs/analog-film-photography-blog/kodak-portra-400-film-sample-photos', photo_url: null, rights: unknown}
-  - {id: p400-greenery, film: portra400, subject: greenery, source_page: 'https://www.lomography.com/films/871910984-kodak-portra-400/photos', photo_url: null, rights: unknown}
-  - {id: p400-architecture, film: portra400, subject: architecture, source_page: 'https://analogicafotografia.com/en/blogs/analog-film-photography-blog/kodak-portra-400-film-sample-photos', photo_url: null, rights: unknown}
-  - {id: gold-daylight, film: gold200, subject: sunny-outdoors, source_page: 'https://photofolly.com/analog/examples/Kodak_Gold_200/Kodak_Gold_200.html', photo_url: null, rights: unknown}
-  - {id: gold-portrait, film: gold200, subject: portrait, source_page: 'https://www.myleskatherine.com/blog/2023/10/10/kodak-gold-200-35mm-sample-photos-one-of-my-top-5-favorite-films', photo_url: null, rights: unknown}
-  - {id: gold-architecture, film: gold200, subject: architecture, source_page: 'https://brooklynfilmcamera.com/blogs/guides/kodak-gold-review', photo_url: null, rights: unknown}
-  - {id: chrome-architecture, film: classic_chrome, subject: architecture, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
-  - {id: chrome-landscape, film: classic_chrome, subject: landscape, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
-  - {id: chrome-portrait, film: classic_chrome, subject: portrait, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-chrome/', photo_url: null, rights: unknown}
-  - {id: negative-street, film: classic_negative, subject: street, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}
-  - {id: negative-greenery, film: classic_negative, subject: greenery, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}
-  - {id: negative-portrait, film: classic_negative, subject: portrait, source_page: 'https://www.fujifilm-x.com/global/products/film-simulation/classic-neg/', photo_url: null, rights: unknown}
+  - {id: portra-architecture, look: portra400, source: kodak_catalogue, pdf_page_1_based: 5, image: bus terminus, credit: Jizhao Gong}
+  - {id: portra-storm, look: portra400, source: kodak_catalogue, pdf_page_1_based: 5, image: storm above city, credit: Amrita Chandradas}
+  - {id: portra-portrait, look: portra400, source: kodak_catalogue, pdf_page_1_based: 5, image: portrait against pale wall, credit: Soomin Yim}
+  - {id: gold-city, look: gold200, source: kodak_catalogue, pdf_page_1_based: 7, image: city street, credit: Jizhao Gong}
+  - id: gold-seaside
+    look: gold200
+    source: kodak_catalogue
+    pdf_page_1_based: 7
+    image: two seated figures facing the sea
+    credit: Soomin Yim
+    processing_note: Photographer describes Hasselblad 120 format and added flash; other settings unknown.
+  - {id: gold-beach, look: gold200, source: kodak_catalogue, pdf_page_1_based: 7, image: beach and clouds, credit: Yoo Myung Gon}
+  - {id: chrome-taxis, look: classic_chrome, source: classic_chrome, image: red taxis, credit: Yukio Uchida}
+  - {id: chrome-clouds, look: classic_chrome, source: classic_chrome, image: clouds and dark foreground, credit: Rammy Narula}
+  - {id: chrome-mountains, look: classic_chrome, source: classic_chrome, image: mountain portrait, credit: Chu Viet Ha}
+  - {id: chrome-wall, look: classic_chrome, source: classic_chrome, image: turquoise painted wall, credit: Nathalie Boucry}
+  - {id: negative-tropical, look: classic_negative, source: classic_negative, image: tropical silhouette and blue sky, credit: Yukio Uchida}
+  - {id: negative-car, look: classic_negative, source: classic_negative, image: red vintage car, credit: Nathalie Boucry}
+  - {id: negative-shop, look: classic_negative, source: classic_negative, image: shop interior, credit: ADITPK}
+supporting_sources:
+  - id: fuji-negative-design
+    url: 'https://www.fujifilm-x.com/en-my/stories/x-pro3-stories-2-learning-from-film/'
+    use: Classic Negative design intent; brightness-dependent color contrast inspired by SUPERIA. No numerical transform supplied.
+  - id: fuji-hydrangea
+    url: 'https://digitalcamera-support-en.fujifilm.com/digitalcameraengpcdetail?aid=000008358'
+    use: Classic Negative comparison panels; the panel with both Color Chrome effects off is the baseline. Effect-on panels are not the baseline simulation.
+  - id: portra-data
+    url: 'https://kodakprofessional.com/sites/default/files/2025-07/e4050.pdf'
+    use: January 2025 technical publication; grain and color claims, not a digital rendering target.
+  - id: gold-data
+    url: 'https://www.kodakprofessional.com/sites/default/files/wysiwyg/pro/resources/E7022_Gold_200.pdf'
+    use: February 2016 technical publication; grain and color claims, not a digital rendering target.

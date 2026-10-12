@@ -46,9 +46,9 @@ def _lut_for_profile(name: str, size: int = 33) -> np.ndarray:
 def mix_look(baseline: np.ndarray, transformed: np.ndarray, strength: float) -> np.ndarray:
     """Blend or amplify a look, limiting amplification at the RGB gamut edge.
 
-    Above 100%, scale the color displacement from neutral. Limit that scale
-    per pixel (rather than clipping channels independently) to keep its color
-    direction. This is an artistic control, not film-density calibration.
+    Above 100%, scale the color displacement from neutral with a smooth
+    shoulder approaching the RGB boundary. Use one scale per pixel to retain
+    color direction. This is an artistic control, not film-density calibration.
     """
     delta = transformed - baseline
     if strength <= 1:
@@ -56,7 +56,13 @@ def mix_look(baseline: np.ndarray, transformed: np.ndarray, strength: float) -> 
     room = np.where(delta > 0, 1 - baseline, baseline)
     limit = np.full_like(delta, np.inf)
     np.divide(room, np.abs(delta), out=limit, where=np.abs(delta) > 1e-8)
-    scale = np.minimum(strength, np.min(limit, axis=-1, keepdims=True))
+    headroom = np.maximum(np.min(limit, axis=-1, keepdims=True) - 1, 0)
+    extra = strength - 1
+    # Rational shoulder: slope 1 at strength=1, asymptotic at the boundary.
+    # Divide first to avoid inf/inf for identical baseline/styled pixels.
+    fraction = np.ones_like(headroom)
+    np.divide(extra, headroom + extra, out=fraction)
+    scale = 1 + extra * (1 - fraction)
     return np.clip(baseline + scale * delta, 0, 1)
 
 
