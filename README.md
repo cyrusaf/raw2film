@@ -28,6 +28,9 @@ open ./demo/gallery/index.html  # macOS
 # Render a Sony RAW:
 raw2film render DSC01234.ARW --look portra400 --output ./portra.jpg
 
+# Start the interactive local editor (http://127.0.0.1:8843):
+raw2film serve --input-dir ~/Documents
+
 # Make a gallery comparing all four looks + a neutral render:
 raw2film compare DSC01234.ARW --output ./comparison
 open ./comparison/index.html
@@ -44,12 +47,38 @@ pytest -q
 
 If `raw2film` is not on PATH, use `python -m raw2film` instead. Python dependencies are listed in `pyproject.toml`. For quick previews, append `--max-edge 1800` to `render`, or use the default 1600-pixel `compare` previews. The full-resolution rendering may use substantial RAM.
 
+## Interactive editor
+
+`raw2film serve` starts a local editor at **http://127.0.0.1:8843**.
+Choose a photo from the optional `--input-dir` folder, or load a RAW through the
+file picker/drop zone. Processing stays on your computer. The server binds only
+to loopback; it is a local desktop companion, not a public hosting service.
+
+- **Look strength, 0–300%:** 0% is neutral, 100% is the original profile, and
+  higher values amplify its tonal and color changes. Amplification stops at the
+  RGB gamut boundary per pixel instead of independently clipping each channel.
+  It exaggerates the artistic treatment; it does not improve film accuracy.
+- **Exposure, −3 to +3 EV:** affects both neutral and styled previews equally,
+  so a brightness adjustment cannot masquerade as a stronger look.
+- **Grain:** a separate multiplier for the selected profile. Above 100% look
+  strength, increasing color strength does not also increase grain. The Fuji
+  profiles have no default grain, so their grain multiplier has no effect.
+- **Comparison:** inspect the neutral and styled rendering before exporting.
+- **Export:** download a full-resolution sRGB JPEG with the current settings.
+  Preview processing uses a 1400-pixel long edge for responsiveness. Grain is
+  sized in output pixels, so its apparent size differs in a full-size export.
+
+The original files are never edited. Uploaded copies are temporary and removed
+when the server shuts down normally. Keep this terminal running while editing;
+press Ctrl-C to stop. Use `--port` to choose a different local port.
+
 ### CLI options
 
 ```sh
 raw2film render path/to/photo.ARW --look portra400 --exposure +0.3
 raw2film render photo.ARW --look gold200 --auto-exposure --strength 0.8
 raw2film render photo.ARW --look gold200 --no-grain
+raw2film render photo.ARW --look classic_chrome --strength 2.0
 raw2film render photo.ARW --look portra400 --grain-multiplier 1.5 --seed 42
 raw2film compare photo.ARW --exposure -0.3 --max-edge 1600
 raw2film batch ./raws --look classic_negative --max-edge 2500

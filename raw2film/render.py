@@ -43,13 +43,30 @@ def _lut_for_profile(name: str, size: int = 33) -> np.ndarray:
     return create_lut(load_profile(name), size=size)
 
 
+def mix_look(baseline: np.ndarray, transformed: np.ndarray, strength: float) -> np.ndarray:
+    """Blend or amplify a look, limiting amplification at the RGB gamut edge.
+
+    Above 100%, scale the color displacement from neutral. Limit that scale
+    per pixel (rather than clipping channels independently) to keep its color
+    direction. This is an artistic control, not film-density calibration.
+    """
+    delta = transformed - baseline
+    if strength <= 1:
+        return np.clip(baseline + strength * delta, 0, 1)
+    room = np.where(delta > 0, 1 - baseline, baseline)
+    limit = np.full_like(delta, np.inf)
+    np.divide(room, np.abs(delta), out=limit, where=np.abs(delta) > 1e-8)
+    scale = np.minimum(strength, np.min(limit, axis=-1, keepdims=True))
+    return np.clip(baseline + scale * delta, 0, 1)
+
+
 def develop(linear: np.ndarray, film: str = "neutral", exposure: float = 0.0,
             auto_exposure: bool = False, grain: bool = True,
             grain_multiplier: float = 1.0, strength: float = 1.0,
             seed: int = 42) -> np.ndarray:
     """Return display-referred gamma-encoded sRGB float32 in [0,1]."""
-    if not 0 <= strength <= 1:
-        raise ValueError("strength must be between 0 and 1")
+    if not 0 <= strength <= 3:
+        raise ValueError("strength must be between 0 and 3")
     if not 0 <= grain_multiplier <= 10:
         raise ValueError("grain multiplier must be between 0 and 10")
     if linear.ndim != 3 or linear.shape[-1] != 3:
@@ -61,10 +78,10 @@ def develop(linear: np.ndarray, film: str = "neutral", exposure: float = 0.0,
         return baseline
     profile = load_profile(film)
     transformed = apply_lut(baseline, _lut_for_profile(film))
-    result = np.clip(baseline + strength * (transformed - baseline), 0, 1)
+    result = mix_look(baseline, transformed, strength)
     if grain:
         salt = int.from_bytes(hashlib.blake2b(film.encode(), digest_size=4).digest(), "little")
-        result = apply_grain(result, float(profile.get("grain", 0)) * grain_multiplier * strength,
+        result = apply_grain(result, float(profile.get("grain", 0)) * grain_multiplier * min(strength, 1),
                              seed=seed ^ salt)
     return result
 

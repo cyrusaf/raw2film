@@ -33,12 +33,15 @@ def build_parser() -> argparse.ArgumentParser:
     lut.add_argument("--output", type=Path)
     demo = commands.add_parser("demo", help="Create a synthetic demo image + film gallery")
     demo.add_argument("--output", type=Path, default=Path("raw2film-demo"))
+    serve = commands.add_parser("serve", help="Open the local interactive RAW editor")
+    serve.add_argument("--input-dir", type=Path, help="Optional folder of photos to show in the editor")
+    serve.add_argument("--port", type=int, default=8843)
     for p in (render, compare, batch):
         p.add_argument("--exposure", type=float, default=0, help="Exposure compensation in stops")
         p.add_argument("--auto-exposure", action="store_true", help="Simple optional median-based auto exposure")
         p.add_argument("--no-grain", action="store_true")
         p.add_argument("--grain-multiplier", type=float, default=1.0)
-        p.add_argument("--strength", type=float, default=1.0, help="Color transform strength 0-1")
+        p.add_argument("--strength", type=float, default=1.0, help="Look strength 0-3 (1 = original profile)")
         p.add_argument("--max-edge", type=int, default=1600 if p is compare else None,
                        help="Resize longest edge in px (comparison defaults to 1600)")
         p.add_argument("--seed", type=int, default=42, help="Deterministic grain seed")
@@ -48,7 +51,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.command == "export-lut":
+        if args.command == "serve":
+            from .server import run_server
+            run_server(input_dir=args.input_dir, port=args.port)
+        elif args.command == "export-lut":
             dest = args.output or Path(f"{args.film}.cube")
             print(export_cube(load_profile(args.film), dest, size=args.size))
         elif args.command == "render":

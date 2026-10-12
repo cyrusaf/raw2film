@@ -3,6 +3,8 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 *.egg-info/
+build/
+dist/
 raw2film-output/
 raw2film-batch/
 raw2film-demo/

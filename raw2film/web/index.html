@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>RAW2FILM · Local studio</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="wordmark" href="/" aria-label="RAW2FILM home"><span class="brand-mark" aria-hidden="true"></span>RAW<span>2</span>FILM</a>
+    <span class="studio-label">LOCAL STUDIO</span>
+    <span class="privacy"><span aria-hidden="true">●</span> Processed on your Mac</span>
+  </header>
+  <main class="editor">
+    <aside class="controls" aria-label="Photo editing controls">
+      <section class="source-section">
+        <div class="section-heading"><h1>Your darkroom.</h1><span class="edition">01</span></div>
+        <p class="intro-copy">A little film. Or a lot.<br>Make the look your own.</p>
+        <label class="upload-zone" id="drop-zone" for="file-input">
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M4 14v6h16v-6"/></svg>
+          <span><strong>Open a RAW photo</strong><small>Choose a file or drop it here</small></span>
+          <input id="file-input" type="file" accept=".arw,.cr2,.cr3,.nef,.nrw,.dng,.raf,.orf,.rw2,.pef,.srw,.raw,.rwl,.3fr,.iiq,.mos,.kdc,.mef,.erf,.mrw,.x3f" aria-label="Open a RAW photo">
+        </label>
+        <label class="field-label" for="library">OR TRY A LOCAL PHOTO</label>
+        <select id="library" aria-label="Choose a local sample photo"><option value="">Choose a photo…</option></select>
+      </section>
+      <fieldset id="adjustments" disabled>
+        <legend class="sr-only">Film adjustments</legend>
+        <section class="control-section looks-section">
+          <div class="control-heading"><h2>Film stock</h2><span class="subtle-label">THE CHARACTER</span></div>
+          <div id="looks" class="looks" role="group" aria-label="Film stock"></div>
+          <p class="look-description" id="look-description">Choose a photo to start exploring.</p>
+        </section>
+        <section class="control-section adjustments-section">
+          <div class="slider-control">
+            <div class="slider-label"><label for="strength">Strength</label><output id="strength-value" for="strength">100<span>%</span></output></div>
+            <input id="strength" type="range" min="0" max="300" step="5" value="100" aria-label="Film strength">
+            <div class="range-labels"><span>Neutral</span><span>Original look</span><span>300%</span></div>
+            <p class="strength-hint" id="strength-hint">100% is the original film recipe.</p>
+          </div>
+          <div class="slider-control">
+            <div class="slider-label"><label for="exposure">Exposure</label><output id="exposure-value" for="exposure">0.0<span>EV</span></output></div>
+            <input id="exposure" type="range" min="-3" max="3" step="0.1" value="0" aria-label="Exposure compensation">
+            <div class="range-labels"><span>−3 EV</span><span>+3 EV</span></div>
+          </div>
+          <div class="slider-control">
+            <div class="slider-label"><label for="grain">Grain</label><output id="grain-value" for="grain">100<span>%</span></output></div>
+            <input id="grain" type="range" min="0" max="200" step="5" value="100" aria-label="Film grain amount">
+            <div class="range-labels"><span>Clean</span><span>200%</span></div>
+            <p class="grain-hint" id="grain-hint" hidden>This film recipe has no grain.</p>
+          </div>
+          <button id="reset" class="reset-button" type="button"><span aria-hidden="true">↺</span> Reset adjustments</button>
+        </section>
+      </fieldset>
+      <div class="export-section">
+        <button class="export-button" id="export" type="button" disabled>Download full-size JPEG <span aria-hidden="true">↗</span></button>
+        <p>Your original RAW stays untouched.</p>
+      </div>
+    </aside>
+    <section class="workspace" aria-label="Photo preview">
+      <div class="preview-toolbar">
+        <div class="file-info"><span class="file-name" id="file-name">No photo selected</span><span class="file-dimensions" id="file-dimensions">RAW → FILM</span></div>
+        <div class="view-switch" role="group" aria-label="Comparison view">
+          <button type="button" id="wipe-view" class="active" aria-pressed="true" title="Before and after wipe">Wipe</button>
+          <button type="button" id="side-view" aria-pressed="false" title="Side-by-side comparison">Side by side</button>
+        </div>
+      </div>
+      <div class="canvas" id="canvas">
+        <div class="empty-state" id="empty-state">
+          <div class="film-frame" aria-hidden="true"><div class="frame-landscape"><svg viewBox="0 0 80 60" fill="none"><circle cx="53" cy="20" r="7"/><path d="m6 52 22-26 19 21 9-12 20 23"/></svg></div><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="eyebrow">A FRESH FRAME</p>
+          <h2>Start with your RAW.</h2>
+          <p>Open a photo, choose a film stock,<br>and turn the feeling up.</p>
+          <button type="button" class="empty-open" id="empty-open">Choose a photo <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="photo-stage" id="photo-stage" hidden>
+          <div class="comparison" id="comparison">
+            <figure class="neutral-frame"><img id="neutral-image" alt="Neutral rendering at the selected exposure"><figcaption>NEUTRAL</figcaption></figure>
+            <figure class="styled-frame"><img id="styled-image" alt="Film rendering at the selected strength"><figcaption id="styled-label">FILM</figcaption></figure>
+            <div class="wipe-line" aria-hidden="true"><span>‹ ›</span></div>
+          </div>
+        </div>
+        <div class="render-badge" id="render-badge" hidden><span class="spinner" aria-hidden="true"></span><span id="render-text">Rendering preview</span></div>
+      </div>
+      <div class="comparison-controls" id="comparison-controls" hidden>
+        <span>Neutral</span><input id="wipe" type="range" min="0" max="100" value="50" aria-label="Before and after comparison divider"><span id="wipe-look-label">Film</span>
+      </div>
+      <footer class="preview-footer"><div class="status" id="status" role="status" aria-live="polite"><span class="status-dot"></span><span id="status-text">Ready when you are</span></div><span id="preview-detail">Local processing · Camera white balance</span></footer>
+      <div class="error-message" id="error" role="alert" hidden></div>
+    </section>
+  </main>
+</body>
+</html>

@@ -20,7 +20,7 @@ raw2film = "raw2film.cli:main"
 include = ["raw2film*"]
 
 [tool.setuptools.package-data]
-raw2film = ["profiles/*.yaml"]
+raw2film = ["profiles/*.yaml", "web/*.html", "web/*.css", "web/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
