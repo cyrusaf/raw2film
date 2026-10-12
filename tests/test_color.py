@@ -50,3 +50,13 @@ def test_cube_file(tmp_path):
     assert 'LUT_3D_SIZE 9' in lines
     assert len(lines) == 4 + 9**3
     assert len(lines[-1].split()) == 3
+
+
+def test_cube_red_axis_changes_fastest(tmp_path):
+    identity = {'name': 'Identity', 'tone_points': [[0, 0], [.5, .5], [1, 1]]}
+    out = export_cube(identity, tmp_path / 'identity.cube', 2)
+    values = np.loadtxt(out, skiprows=4)
+    np.testing.assert_allclose(values, [
+        [0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0],
+        [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1],
+    ], atol=1e-6)

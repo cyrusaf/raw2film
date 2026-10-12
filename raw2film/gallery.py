@@ -2,8 +2,8 @@
 from __future__ import annotations
 import html
 from pathlib import Path
-from .io import load_linear_rgb, write_jpeg
-from .render import develop
+from .io import load_linear_rgb, validate_output_paths, write_jpeg
+from .render import develop, auto_exposure_ev
 
 FILMS = ["neutral", "portra400", "gold200", "classic_chrome", "classic_negative"]
 DISPLAY = ["Neutral", "Kodak Portra 400", "Kodak Gold 200", "Classic Chrome", "Classic Negative"]
@@ -15,6 +15,8 @@ def make_gallery(input_path: str | Path, output: str | Path,
                  grain_multiplier: float = 1.0, strength: float = 1.0,
                  seed: int = 42) -> Path:
     output = Path(output)
+    validate_output_paths([input_path],
+                          [output / f"{film}.jpg" for film in FILMS] + [output / "index.html"])
     output.mkdir(parents=True, exist_ok=True)
     image = load_linear_rgb(input_path, max_edge)
     cards = []
@@ -23,18 +25,23 @@ def make_gallery(input_path: str | Path, output: str | Path,
         rendered = develop(image, film, exposure, auto_exposure, grain,
                            grain_multiplier, strength, seed)
         write_jpeg(rendered, output / filename)
-        cards.append(f'<figure><img src="{filename}" alt="{html.escape(label)}" loading="lazy">'
+        cards.append(f'<figure><a href="{filename}"><img src="{filename}" alt="{html.escape(label)}" loading="lazy"></a>'
                      f'<figcaption>{html.escape(label)}</figcaption></figure>')
     source = html.escape(Path(input_path).name)
+    effective_ev = exposure + (auto_exposure_ev(image) if auto_exposure else 0)
+    settings = (f'Exposure: {effective_ev:+.2f} EV'
+                f' · Strength: {strength:g} · Grain: {"on" if grain else "off"}'
+                f' (×{grain_multiplier:g}) · Seed: {seed}'
+                f' · {image.shape[1]} × {image.shape[0]} px')
     page = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>raw2film comparison — {source}</title><style>
 :root{{color-scheme:dark}}body{{font-family:system-ui,-apple-system,sans-serif;background:#161719;color:#eee;
 margin:0 auto;max-width:1550px;padding:28px}}header{{margin-bottom:22px}}p{{color:#aaa}}
-.gallery{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:24px}}
+.gallery{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px}}
 figure{{margin:0;background:#242628;border-radius:10px;overflow:hidden}}img{{display:block;width:100%;height:auto}}
 figcaption{{padding:14px 18px;font-weight:600}}footer{{margin-top:30px;color:#888;font-size:13px}}
-</style></head><body><header><h1>raw2film comparison</h1><p>Source: {source} · Film-inspired prototypes, not calibrated film reproductions</p></header>
+</style></head><body><header><h1>raw2film comparison</h1><p>Source: {source} · Film-inspired prototypes, not calibrated film reproductions</p><p>{settings}</p></header>
 <div class="gallery">{''.join(cards)}</div><footer>All images share the same RAW development and exposure settings.</footer></body></html>'''
     (output / "index.html").write_text(page, encoding="utf-8")
     return output / "index.html"

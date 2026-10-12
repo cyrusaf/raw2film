@@ -9,7 +9,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 
 from .color import srgb_encode, highlight_compress, create_lut, apply_lut, load_profile
-from .io import load_linear_rgb, write_jpeg
+from .io import load_linear_rgb, validate_output_paths, write_jpeg
 
 
 def auto_exposure_ev(linear: np.ndarray, target: float = 0.18) -> float:
@@ -74,6 +74,7 @@ def render_file(input_path: str | Path, output_path: str | Path, film: str,
                 grain: bool = True, grain_multiplier: float = 1.0,
                 strength: float = 1.0, max_edge: int | None = None,
                 seed: int = 42) -> Path:
+    validate_output_paths([input_path], [output_path])
     image = load_linear_rgb(input_path, max_edge)
     rendered = develop(image, film, exposure, auto_exposure, grain,
                        grain_multiplier, strength, seed)

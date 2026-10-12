@@ -7,7 +7,7 @@ import sys
 from .color import export_cube, load_profile
 from .gallery import make_gallery
 from .render import render_file
-from .io import RAW_EXTENSIONS, RGB_EXTENSIONS
+from .io import RAW_EXTENSIONS, RGB_EXTENSIONS, validate_output_paths
 
 FILMS = ["portra400", "gold200", "classic_chrome", "classic_negative"]
 
@@ -64,8 +64,9 @@ def main(argv: list[str] | None = None) -> int:
                             x.suffix.lower() in RAW_EXTENSIONS | RGB_EXTENSIONS)
             if not inputs:
                 raise ValueError("No supported image files found in input directory")
-            for src in inputs:
-                dest = args.output / f"{src.stem}_{args.film}.jpg"
+            destinations = [args.output / f"{src.stem}_{args.film}.jpg" for src in inputs]
+            validate_output_paths(inputs, destinations)
+            for src, dest in zip(inputs, destinations):
                 print(render_file(src, dest, args.film, args.exposure,
                                   args.auto_exposure, not args.no_grain,
                                   args.grain_multiplier, args.strength,

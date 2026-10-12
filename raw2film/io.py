@@ -16,6 +16,31 @@ RAW_EXTENSIONS = {".arw", ".dng", ".cr2", ".cr3", ".nef", ".raf", ".orf", ".rw2"
 RGB_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"}
 
 
+def validate_output_paths(inputs: list[str | Path], outputs: list[str | Path]) -> None:
+    """Reject source overwrites and colliding outputs before any files are written."""
+    def identities(path: str | Path) -> set[tuple]:
+        path = Path(path)
+        keys = {("path", path.resolve())}
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            pass
+        else:
+            # Resolving paths catches symlinks; inode identity also catches hardlinks.
+            keys.add(("inode", stat.st_dev, stat.st_ino))
+        return keys
+
+    source_keys = set().union(*(identities(path) for path in inputs))
+    output_keys = set()
+    for output in outputs:
+        keys = identities(output)
+        if keys & source_keys:
+            raise ValueError(f"Output path would overwrite an input file: {output}")
+        if keys & output_keys:
+            raise ValueError(f"Multiple outputs resolve to the same file: {output}")
+        output_keys.update(keys)
+
+
 def load_linear_rgb(path: str | Path, max_edge: int | None = None) -> np.ndarray:
     path = Path(path)
     if not path.exists():

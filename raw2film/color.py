@@ -173,7 +173,8 @@ def export_cube(profile: dict, output: Path, size: int = 33) -> Path:
     with output.open("w", encoding="utf-8") as f:
         f.write(f'TITLE "raw2film {profile["name"]} (sRGB to sRGB)"\n')
         f.write(f"LUT_3D_SIZE {size}\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n")
-        # RGB index order, blue changes fastest (common .cube convention).
-        for r, g, b in lut.reshape(-1, 3):
+        # .cube stores red fastest, then green, then blue. Internal LUTs
+        # are indexed [red, green, blue], so transpose only the grid axes.
+        for r, g, b in lut.transpose(2, 1, 0, 3).reshape(-1, 3):
             f.write(f"{r:.8f} {g:.8f} {b:.8f}\n")
     return output

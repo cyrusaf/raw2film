@@ -57,6 +57,13 @@ raw2film batch ./raws --look classic_negative --max-edge 2500
 
 `--auto-exposure` uses a simple median-luminance estimate, capped at +/-2 stops. It is deliberately **off by default** because night scenes and high-key subjects fool simple metering; the default is the camera exposure with no arbitrary auto-brightening. Camera white balance is used by default for RAW files. Grain is deterministic for a given input, profile, and seed.
 
+Comparison galleries record the effective exposure, strength, grain settings,
+seed and output dimensions. Click an image to inspect the exported JPEG.
+Rendering refuses to overwrite an input file, including through a symlink or
+hardlink. Batch and comparison commands check all destinations before writing;
+a RAW/JPEG pair with the same filename stem must be rendered separately or renamed
+because it would otherwise produce the same output filename.
+
 ## Processing pipeline
 
 1. **Decode RAW**: `rawpy`/LibRaw demosaics and applies camera WB and camera-to-sRGB color conversion, returning 16-bit **linear-light sRGB** (no rawpy auto-brightening, `gamma=(1,1)`). Standard JPEG/PNG inputs are treated as display-sRGB and decoded to linear-light first; embedded ICC profiles are converted when possible.
@@ -95,7 +102,7 @@ Film scans include scanner and lab choices, so an appearance seen on a website i
 
 ## Limitations and next steps
 
-- The RAW path uses the documented [rawpy linear output API](https://github.com/letmaik/rawpy/blob/main/README.md). **Real ARW decoding must be tested on an actual Sony file on a machine with rawpy installed**; development here verified the CLI and color engine using synthetic PNG inputs because network-installing rawpy was unavailable.
+- The RAW path uses the documented [rawpy linear output API](https://github.com/letmaik/rawpy/blob/main/README.md). Real Sony ARW decoding was verified locally on macOS with Python 3.12 and rawpy 0.27.1: all five 2400-pixel comparison renders and a 6024 × 4024 Portra export completed with embedded sRGB ICC profiles. The source file's SHA-256 was unchanged. This validates one photograph, not every supported camera or lighting condition.
 - 16-bit precision is preserved through RAW decode and float32 processing, but JPEG exports are 8-bit. Add 16-bit TIFF in a later release.
 - The LUT works on gamma-encoded sRGB and cannot capture scene-linear or spectral cross-channel effects, film development chemistry, halation, film-specific grain distributions, scanner nonuniformity or sophisticated gamut mapping.
 - `rawpy` converts/clips camera-native values to linear sRGB before film simulation. A future higher-quality pipeline could use camera DCP/ICC profiles and a wide-gamut floating-point intermediate such as linear Rec.2020 or ACEScg.
@@ -120,3 +127,20 @@ raw2film compare /path/to/sony-photo.ARW --output ./arw-check
 ```
 
 Check camera white balance, highlight retention, green foliage, skin tones, orientation, and that the neutral render is sensibly exposed. Compare output to a Lightroom neutral development as a sanity check, not a pixel-exact expectation.
+
+An optional integration test exercises real RAW decoding, all five JPEG outputs,
+ICC embedding and source preservation without committing a private photograph:
+
+```sh
+RAW2FILM_TEST_RAW=/path/to/sony-photo.ARW pytest -q
+```
+
+The first local acceptance image was a dark indoor scene. A manually chosen
+`--exposure +1.0` made a useful comparison while retaining the lighting; the CLI
+default remains 0 EV. Visual inspection included all looks and 1:1 crops of fur,
+deep shadows and smooth background in the full-resolution Portra export. Fewer
+than 0.015% of pixels in each comparison JPEG reached 255 in any channel; Gold's
+grain produced about 0.30% fully black pixels. These are exported-JPEG statistics,
+not measurements of sensor clipping or film accuracy. Skin and foliage fidelity
+still need separate scenes and matched references. Grain is currently sized in
+output pixels, so its apparent size varies with export resolution.
